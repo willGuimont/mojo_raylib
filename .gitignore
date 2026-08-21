@@ -1,0 +1,6 @@
+build/
+.pixi/
+.mojo_cache/
+*.mojopkg
+*.so
+*.a
