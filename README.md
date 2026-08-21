@@ -53,8 +53,8 @@ pixi --version
 Clone the repository with submodules and build the shared dynamic library:
 
 ```bash
-git clone --recursive https://github.com/wigum/raylib_mojo.git
-cd raylib_mojo
+git clone --recursive https://github.com/willGuimont/mojo_raylib.git
+cd mojo_raylib
 
 # Build raylib shared library
 pixi run build-raylib
@@ -69,25 +69,29 @@ To use `raylib-mojo` in your own Pixi + Mojo project:
 In your project root, add `raylib_mojo` (and its submodules) to a subdirectory such as `third_party/`:
 
 ```bash
-git submodule add https://github.com/wigum/raylib_mojo.git third_party/raylib_mojo
+git submodule add https://github.com/willGuimont/mojo_raylib third_party/raylib_mojo
 git submodule update --init --recursive
 ```
 
 #### 2. Configure `pixi.toml` / `mojoproject.toml`
 
-Ensure `cmake`, `ninja`, and `make` are included in your dependencies so Pixi can build `libraylib`. Add tasks to build `raylib` and run your app with the required import (`-I`) and linker (`-Xlinker`) flags:
+Ensure `channels` includes the Modular channel (`https://conda.modular.com/max`), and `max`, `mojo`, `cmake`, `ninja`, and `make` are included in your dependencies so Pixi can manage Mojo and build `libraylib`. Add tasks to build `raylib` and run your app with the required import (`-I`), library path (`-L`), runtime search path (`-rpath`), and linker (`-lraylib`) flags:
 
 ```toml
+[workspace]
+channels = ["conda-forge", "https://conda.modular.com/max"]
+platforms = ["linux-64"]
+
+[tasks]
+build-raylib = "cmake -B third_party/raylib_mojo/build/raylib -S third_party/raylib_mojo/third_party/raylib -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON && cmake --build third_party/raylib_mojo/build/raylib"
+start = "mojo run -I third_party/raylib_mojo/src -Xlinker -Lthird_party/raylib_mojo/build/raylib/raylib -Xlinker -rpath -Xlinker third_party/raylib_mojo/build/raylib/raylib -Xlinker -lraylib main.mojo"
+
 [dependencies]
 max = ">=26.5.0"
 mojo = ">=1.0.0"
 cmake = "*"
 ninja = "*"
 make = "*"
-
-[tasks]
-build-raylib = "cmake -B third_party/raylib_mojo/build/raylib -S third_party/raylib_mojo/third_party/raylib -DBUILD_EXAMPLES=OFF -DSHARED=ON && cmake --build third_party/raylib_mojo/build/raylib"
-start = "mojo run -I third_party/raylib_mojo/src -Xlinker -Lthird_party/raylib_mojo/build/raylib -Xlinker -lraylib main.mojo"
 ```
 
 #### 3. Build & Run
